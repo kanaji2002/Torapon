@@ -1,35 +1,37 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.interpolate import make_interp_spline
+import networkx as nx
 
-# 制御点を指定 (x, y)
-points = np.array([
-    [0, 0],
-    [1, 2],
-    [3, 3],
-    [4, 1],
-    [5, 4],
-    [8, 3]
-])
+def find_shortest_path(graph, start, goal):
+    """
+    Dijkstra法を使って最短経路を求める
+    :param graph: NetworkXのグラフ
+    :param start: 開始地点
+    :param goal: 目的地
+    :return: 最短経路リストと距離
+    """
+    try:
+        path = nx.shortest_path(graph, source=start, target=goal, weight='weight', method='dijkstra')
+        distance = nx.shortest_path_length(graph, source=start, target=goal, weight='weight')
+        return path, distance
+    except nx.NetworkXNoPath:
+        return None, float('inf')
 
-# x, y 座標を分離
-x = points[:, 0]
-y = points[:, 1]
+# サンプルグラフの作成
+G = nx.Graph()
+edges = [
+    ('A', 'B', 4), ('A', 'C', 2), ('B', 'C', 5), ('B', 'D', 10),
+    ('C', 'D', 3), ('D', 'E', 8), ('E', 'A', 7)
+]
+G.add_weighted_edges_from(edges)
 
-# 滑らかに補間するための新しい x 値
-x_new = np.linspace(x.min(), x.max(), 100)
+# ユーザーの入力
+start = input("現在地を入力してください: ")
+goal = input("目的地を入力してください: ")
 
-# Bスプライン補間
-spl = make_interp_spline(x, y, k=3)  # 3次のBスプライン (k=3)
-y_new = spl(x_new)
+# 最短経路の計算
+path, distance = find_shortest_path(G, start, goal)
 
-# 描画
-plt.figure(figsize=(8, 5))
-plt.plot(x, y, 'ro', label="Control Points")  # 制御点
-plt.plot(x_new, y_new, 'b-', label="B-Spline Curve")  # Bスプライン曲線
-plt.legend()
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.title("B-Spline Curve Interpolation")
-plt.grid()
-plt.show()
+if path:
+    print(f"最短経路: {' → '.join(path)}")
+    print(f"合計距離: {distance}")
+else:
+    print("経路が見つかりません。")
